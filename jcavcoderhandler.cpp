@@ -108,7 +108,28 @@ int JCAVCoderHandler::IntVideoCodec()
         }
     }
 
-    qDebug()<<"videoIdx:" << m_videoStreamIdx << "audioIdx:" << m_audioStreamIdx << endl;
+    m_videoWidth = m_pVideoCodecCtx->width;
+    m_videoHeight = m_pVideoCodecCtx->height;
+
+    AVStream *videoStream = m_pformatCtx->streams[m_videoStreamIdx];
+    AVStream *audioStream = m_pformatCtx->streams[m_audioStreamIdx];
+
+    // num / den biaoshi meiyizhenzhijian de shijian jiege
+    if(nullptr != videoStream)
+    {
+        m_vStreamTimeRational = videoStream->time_base;
+        qDebug()<< "videosize:" << m_videoWidth << "x" << m_videoHeight << endl;
+
+        // shijiankedugainian,
+        qDebug()<< "AVstream V Rational:" << videoStream->time_base.num << " " << videoStream->time_base.den;
+    }
+
+
+    if(nullptr != audioStream)
+    {
+       m_aStreamTimeRational = audioStream->time_base;
+       qDebug()<< "AVstream A Rational:" << audioStream->time_base.num<< " " << audioStream->time_base.den;
+    }
 
     return 0;
 }

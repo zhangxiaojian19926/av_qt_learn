@@ -43,6 +43,9 @@ private:
     AVCodecContext  *m_pVideoCodecCtx = NULL; //baocun bianmaqixinxi
     AVCodecContext  *m_pAudioCodecCtx = NULL;
 
+    AVRational       m_vStreamTimeRational;
+    AVRational       m_aStreamTimeRational;
+
 public:
     JCAVCoderHandler();
     ~JCAVCoderHandler();
