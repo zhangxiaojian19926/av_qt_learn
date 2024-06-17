@@ -7,6 +7,11 @@ JCMPlayer::JCMPlayer(QWidget *parent)
 {
     ui->setupUi(this);
 
+    setAcceptDrops(true); // dakai tuozhuashijian
+
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::Background, Qt::black);
+
     setupPlayerCentralWidget();
 }
 
@@ -58,8 +63,63 @@ void JCMPlayer::dragEnterEvent(QDragEnterEvent *event)
 
 void JCMPlayer::openMediaPlayerWithPath(const QString &filePath)
 {
+    if(filePath.isEmpty())
+    {
+        qDebug()<< "filepath is empty"<< endl;
+        return;
+    }
+
+    releasePlayCentralWidget();
+
+    setupPlayerCentralWidget();// chuang jianbofanqijubing
+
+    if(m_pAVCodecHandler != NULL)
+    {
+        m_pAVCodecHandler->SetVideoFilePath(filePath);
+        m_pAVCodecHandler->IntVideoCodec();
+    }
+
+    QSize videoSize = m_pAVCodecHandler->GetMediaWithHeigth();
+    qDebug()<< "filepath:" << m_pAVCodecHandler->GetVideoFilePath()<< endl;
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
