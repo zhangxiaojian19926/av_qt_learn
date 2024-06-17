@@ -4,7 +4,11 @@ JCAVCoderHandler::JCAVCoderHandler()
     :m_videoPathString(""),
       m_videoWidth(0),
       m_videoHeight(0),
-      m_pformatCtx(NULL)
+      m_videoStreamIdx(0),
+      m_audioStreamIdx(0),
+      m_pformatCtx(NULL),
+      m_pVideoCodecCtx(NULL),
+      m_pAudioCodecCtx(NULL)
 {
     // register all ffmpeg
     avcodec_register_all();
@@ -59,7 +63,52 @@ int JCAVCoderHandler::IntVideoCodec()
 
     av_dump_format(m_pformatCtx, 0, filePath, 0); // print stream info
 
+    m_videoStreamIdx = -1;
+    m_audioStreamIdx = -1;
 
+    for(int i = 0; i < (int)m_pformatCtx->nb_streams; i++)
+    {
+        // huoqushipin jiemaxinxi,yiji codec xinxi
+        AVCodecParameters *codecParameters = m_pformatCtx->streams[i]->codecpar;
+        if(AVMEDIA_TYPE_VIDEO == codecParameters->codec_type)
+        {
+            m_videoStreamIdx = i;
+            m_pVideoCodecCtx = m_pformatCtx->streams[i]->codec;
+            AVCodec *codec = avcodec_find_decoder(m_pVideoCodecCtx->codec_id);
+            if(codec == nullptr)
+            {
+                qDebug() << "video codec is null"<< endl;
+                return -1;
+            }
+
+            if(avcodec_open2(m_pVideoCodecCtx, codec, NULL) < 0)
+            {
+                qDebug() << "couldn't open codec"<< endl;
+                return -1;
+            }
+        }
+
+        // huoquyinpin jiemaxinxi,yiji codec xinxi
+        if(AVMEDIA_TYPE_AUDIO == codecParameters->codec_type)
+        {
+            m_audioStreamIdx = i;
+            m_pAudioCodecCtx = m_pformatCtx->streams[i]->codec;
+            AVCodec *codec = avcodec_find_decoder(m_pAudioCodecCtx->codec_id);
+            if(codec == nullptr)
+            {
+                qDebug() << "video codec is null"<< endl;
+                return -1;
+            }
+
+            if(avcodec_open2(m_pAudioCodecCtx, codec, NULL) < 0)
+            {
+                qDebug() << "couldn't open codec"<< endl;
+                return -1;
+            }
+        }
+    }
+
+    qDebug()<<"videoIdx:" << m_videoStreamIdx << "audioIdx:" << m_audioStreamIdx << endl;
 
     return 0;
 }

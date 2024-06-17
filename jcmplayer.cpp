@@ -9,7 +9,7 @@ JCMPlayer::JCMPlayer(QWidget *parent)
 
     setAcceptDrops(true); // dakai tuozhuashijian
 
-    QPalette palette = this->palette();
+    QPalette palette = this->palette();// tianjiacaidanlan
     palette.setColor(QPalette::Background, Qt::black);
 
     setupPlayerCentralWidget();

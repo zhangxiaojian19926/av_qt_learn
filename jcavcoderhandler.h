@@ -35,7 +35,13 @@ private:
     int m_videoWidth = 0;
     int m_videoHeight = 0;
 
+    int m_videoStreamIdx = -1;
+    int m_audioStreamIdx = -1;
+
     AVFormatContext *m_pformatCtx = NULL;
+
+    AVCodecContext  *m_pVideoCodecCtx = NULL; //baocun bianmaqixinxi
+    AVCodecContext  *m_pAudioCodecCtx = NULL;
 
 public:
     JCAVCoderHandler();
@@ -51,3 +57,33 @@ public:
 };
 
 #endif // JCAVCODERHANDLER_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
