@@ -1,0 +1,14 @@
+prefix=/home/zhang/qt/jcmplayer/JVMPlayer/3rdparty/linux/FFmpeg/output
+exec_prefix=${prefix}
+libdir=/home/zhang/qt/jcmplayer/JVMPlayer/3rdparty/linux/FFmpeg/output/lib
+includedir=/home/zhang/qt/jcmplayer/JVMPlayer/3rdparty/linux/FFmpeg/output/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 56.70.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil -pthread -lvdpau -lX11 -lm -latomic -lXv -lX11 -lXext
+Libs.private: 
+Cflags: -I${includedir}

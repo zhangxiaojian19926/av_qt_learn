@@ -1,0 +1,14 @@
+prefix=/home/zhang/qt/jcmplayer/JVMPlayer/3rdparty/linux/FFmpeg/output
+exec_prefix=${prefix}
+libdir=/home/zhang/qt/jcmplayer/JVMPlayer/3rdparty/linux/FFmpeg/output/lib
+includedir=/home/zhang/qt/jcmplayer/JVMPlayer/3rdparty/linux/FFmpeg/output/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 58.134.100
+Requires: libswresample >= 3.9.100, libavutil >= 56.70.100
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavcodec -pthread -lm -latomic -lz -lfdk-aac -lx264
+Libs.private: 
+Cflags: -I${includedir}
