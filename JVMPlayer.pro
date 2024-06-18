@@ -29,6 +29,7 @@ SOURCES += \
     jcmplayer.cpp
 
 HEADERS += \
+    JCDataDefine.h \
     jcavcoderhandler.h \
     jcmplayer.h
 
