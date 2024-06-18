@@ -9,6 +9,7 @@
 #include <atomic>
 #include <thread>
 #include <vector>
+#include "JCDataDefine.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +44,10 @@ private:
     int m_videoStreamIdx = -1;
     int m_audioStreamIdx = -1;
 
+    bool m_bReadFileEOF = false;
+
+    MediaPlayStatus m_eMediaStatus;
+
     AVFormatContext *m_pformatCtx = NULL;
 
     AVCodecContext  *m_pVideoCodecCtx = NULL; //baocun bianmaqixinxi
@@ -51,11 +56,18 @@ private:
     AVRational       m_vStreamTimeRational;
     AVRational       m_aStreamTimeRational;
 
+    JCTSQueue<AVPacket*> m_audioPktQue;
+    JCTSQueue<AVPacket*> m_videoPktQue;
+
     void startMediaProcessThreads(); // chuangjian xiancheng
 
     void doReadMediaFrameThread();
     void doAudioDecodeThread();
     void doVideoDecodeThread();
+
+    void readMediaPacket();
+
+    void stdThreadSleep(int mseconds);
 
 public:
     JCAVCoderHandler();

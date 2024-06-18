@@ -1,5 +1,10 @@
 #include "jcavcoderhandler.h"
 
+std::atomic<bool> m_bThreadRunning(false);
+std::atomic<bool> m_bFileThreadRunning(false);
+std::atomic<bool> m_bVideoThreadRunning(false);
+std::atomic<bool> m_bAudioThreadRunning(false);
+
 JCAVCoderHandler::JCAVCoderHandler()
     :m_videoPathString(""),
       m_videoWidth(0),
@@ -45,9 +50,44 @@ void JCAVCoderHandler::StopPlayVideo()
 
 }
 
-void JCAVCoderHandler::doReadMediaFrameThread()
+void JCAVCoderHandler::stdThreadSleep(int mseconds)
+{
+    std::chrono::microseconds sleepTime(mseconds);
+    std::this_thread::sleep_for(sleepTime);
+}
+
+void JCAVCoderHandler::readMediaPacket()
 {
 
+}
+
+void JCAVCoderHandler::doReadMediaFrameThread()
+{
+    while(m_bThreadRunning)
+    {
+        m_bFileThreadRunning = true;
+
+        if(MEDIAPLAY_STATUS_PAUSE == m_eMediaStatus)
+        {
+            stdThreadSleep(10);
+            continue;
+        }
+
+        if(m_videoPktQue.size() > 600 && m_audioPktQue.size() > 1200)
+        {
+            stdThreadSleep(10);
+            continue;
+        }
+
+        if(false == m_bReadFileEOF)
+        {
+
+        }
+        else
+        {
+            stdThreadSleep(10);
+        }
+    }
 }
 
 void JCAVCoderHandler::doAudioDecodeThread()
@@ -62,6 +102,8 @@ void JCAVCoderHandler::doVideoDecodeThread()
 
 void JCAVCoderHandler::startMediaProcessThreads()
 {
+    m_bThreadRunning = true;
+
     // c++11 de xianchengku
     std::thread readThread(&JCAVCoderHandler::doReadMediaFrameThread, this);
     readThread.detach();// fenlichulai
