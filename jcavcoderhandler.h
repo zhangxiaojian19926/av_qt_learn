@@ -53,6 +53,10 @@ private:
     AVCodecContext  *m_pVideoCodecCtx = NULL; //baocun bianmaqixinxi
     AVCodecContext  *m_pAudioCodecCtx = NULL;
 
+    AVFrame * m_pYUVFrame = NULL;
+    AVFrame * m_pVideoFrame = NULL;
+    AVFrame * m_pAudioFrame = NULL;
+
     AVRational       m_vStreamTimeRational;
     AVRational       m_aStreamTimeRational;
 

@@ -144,7 +144,7 @@ void JCAVCoderHandler::doReadMediaFrameThread()
 
         if(false == m_bReadFileEOF)
         {
-
+            readMediaPacket();
         }
         else
         {
@@ -160,7 +160,55 @@ void JCAVCoderHandler::doAudioDecodeThread()
 
 void JCAVCoderHandler::doVideoDecodeThread()
 {
+    if(m_pformatCtx == NULL)
+    {
+        return;
+    }
 
+    if(m_pVideoFrame == NULL)
+    {
+        m_pVideoFrame = av_frame_alloc();
+    }
+
+    while (m_bThreadRunning)
+    {
+        m_bVideoThreadRunning = true;
+
+        if(m_eMediaStatus == MEDIAPLAY_STATUS_PAUSE)
+        {
+            stdThreadSleep(10);
+            continue;
+        }
+
+        if(m_videoPktQue.isEmpty())
+        {
+            stdThreadSleep(10);
+            continue;
+        }
+
+        AVPacket *pkt = (AVPacket*)m_videoPktQue.dequeue();
+        if(pkt == NULL)
+        {
+            break;
+        }
+
+        int reValue = avcodec_send_packet(m_pVideoCodecCtx, pkt);
+        if(reValue != 0)
+        {
+            freePacket(pkt);
+            continue;
+        }
+
+        int decodeRet = avcodec_receive_frame(m_pVideoCodecCtx, m_pVideoFrame);
+        if(decodeRet == 0)
+        {
+            // xuanlanshipin
+        }
+
+        freePacket(pkt);
+    }
+
+    qDebug()<< "video decode thread exit..." << endl;
 }
 
 void JCAVCoderHandler::startMediaProcessThreads()
