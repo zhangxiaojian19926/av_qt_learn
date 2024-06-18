@@ -26,7 +26,7 @@ public:
     void enquue(const T &t)
     {
         m_mutex.lock();
-        QList<T>::oppend(t);
+        QList<T>::append(t);
         m_mutex.unlock();
     }
 

@@ -56,9 +56,72 @@ void JCAVCoderHandler::stdThreadSleep(int mseconds)
     std::this_thread::sleep_for(sleepTime);
 }
 
+
+void JCAVCoderHandler::freePacket(AVPacket *packet)
+{
+    if(packet == NULL)
+    {
+        return;
+    }
+
+    av_free_packet(packet);
+    free(packet);
+}
+
 void JCAVCoderHandler::readMediaPacket()
 {
+    AVPacket * packet = (AVPacket *) malloc(sizeof (AVPacket));
+    if(!packet)
+    {
+        return ;
+    }
 
+    av_init_packet(packet);
+
+    m_eMediaStatus = MEDIAPLAY_STATUS_PLAYING;
+
+    int reValue = av_read_frame(m_pformatCtx, packet);
+    if(reValue == 0)
+    {
+        if(packet != NULL && packet->stream_index == m_videoStreamIdx)
+        {
+            if(!av_dup_packet(packet))
+            {
+                m_videoPktQue.enquue(packet);
+            }
+            else
+            {
+                // shi fang neicun
+                freePacket(packet);
+                packet = NULL;
+            }
+        }
+
+        if(packet != NULL && packet->stream_index == m_audioStreamIdx)
+        {
+            if(!av_dup_packet(packet))
+            {
+                m_audioPktQue.enquue(packet);
+            }
+            else
+            {
+                // shi fang neicun
+                freePacket(packet);
+                packet = NULL;
+            }
+        }
+    }
+    else if(reValue < 0)
+    {
+        if(reValue == AVERROR_EOF) // wenjianduwanle
+        {
+            m_bReadFileEOF = true;
+        }
+
+        return;
+    }
+
+    return ;
 }
 
 void JCAVCoderHandler::doReadMediaFrameThread()

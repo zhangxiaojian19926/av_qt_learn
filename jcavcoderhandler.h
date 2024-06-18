@@ -66,6 +66,7 @@ private:
     void doVideoDecodeThread();
 
     void readMediaPacket();
+    void freePacket(AVPacket *packet);
 
     void stdThreadSleep(int mseconds);
 
