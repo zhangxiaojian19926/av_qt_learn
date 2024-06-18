@@ -4,6 +4,11 @@
 #include <QObject>
 #include <QWidget>
 #include <QtDebug>
+#include <mutex>
+#include <iostream>
+#include <atomic>
+#include <thread>
+#include <vector>
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,6 +51,12 @@ private:
     AVRational       m_vStreamTimeRational;
     AVRational       m_aStreamTimeRational;
 
+    void startMediaProcessThreads(); // chuangjian xiancheng
+
+    void doReadMediaFrameThread();
+    void doAudioDecodeThread();
+    void doVideoDecodeThread();
+
 public:
     JCAVCoderHandler();
     ~JCAVCoderHandler();
@@ -57,6 +68,10 @@ public:
 
     int IntVideoCodec();
     void UnInitVideoCode();
+
+    // kaishi yu tingzhi bofang
+    void StartPlayVideo();
+    void StopPlayVideo();
 };
 
 #endif // JCAVCODERHANDLER_H

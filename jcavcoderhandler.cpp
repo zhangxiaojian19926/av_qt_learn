@@ -35,6 +35,44 @@ QSize JCAVCoderHandler::GetMediaWithHeigth()
     return QSize(0, 0);
 }
 
+void JCAVCoderHandler::StartPlayVideo()
+{
+    startMediaProcessThreads();
+}
+
+void JCAVCoderHandler::StopPlayVideo()
+{
+
+}
+
+void JCAVCoderHandler::doReadMediaFrameThread()
+{
+
+}
+
+void JCAVCoderHandler::doAudioDecodeThread()
+{
+
+}
+
+void JCAVCoderHandler::doVideoDecodeThread()
+{
+
+}
+
+void JCAVCoderHandler::startMediaProcessThreads()
+{
+    // c++11 de xianchengku
+    std::thread readThread(&JCAVCoderHandler::doReadMediaFrameThread, this);
+    readThread.detach();// fenlichulai
+
+    std::thread videoDecodeThread(&JCAVCoderHandler::doVideoDecodeThread, this);
+    videoDecodeThread.detach();// fenlichulai
+
+    std::thread audioDecodeThread(&JCAVCoderHandler::doAudioDecodeThread, this);
+    audioDecodeThread.detach();// fenlichulai
+}
+
 // init videocodec x264
 int JCAVCoderHandler::IntVideoCodec()
 {
