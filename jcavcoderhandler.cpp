@@ -1,5 +1,7 @@
 #include "jcavcoderhandler.h"
 
+#define MIN(x, y) ((x) > (y)) ? (y) : (x)
+
 std::atomic<bool> m_bThreadRunning(false);
 std::atomic<bool> m_bFileThreadRunning(false);
 std::atomic<bool> m_bVideoThreadRunning(false);
@@ -124,6 +126,71 @@ void JCAVCoderHandler::readMediaPacket()
     return ;
 }
 
+// xuanlanshipin
+void JCAVCoderHandler::convertAndRenderVideo(AVFrame* decodedFrame, long long ppts)// xuanlan
+{
+    if(decodedFrame == NULL)
+    {
+        return;
+    }
+
+    // jinxing genshizhuanhuan
+    if(m_pVideoSwsCtx == NULL)
+    {
+        m_pVideoSwsCtx = sws_getContext(m_videoWidth, m_videoHeight, m_pVideoCodecCtx->pix_fmt,\
+                                          m_pVideoCodecCtx->width, m_pVideoCodecCtx->height, AV_PIX_FMT_YUV420P, \
+                                          SWS_BICUBIC, NULL, NULL, NULL);
+    }
+
+    sws_scale(m_pVideoSwsCtx, decodedFrame->data, decodedFrame->linesize,
+              0, m_pVideoCodecCtx->height, m_pYUVFrame->data, m_pVideoFrame->linesize);
+
+    // ffmpeg yiban 32zijieduiqi
+    unsigned int lumaLength = m_pVideoCodecCtx->height * (MIN(m_pVideoFrame->linesize[0],m_pVideoCodecCtx->width));
+    unsigned int chromBLength = m_pVideoCodecCtx->height * MIN(m_pVideoFrame->linesize[1],m_pVideoCodecCtx->width) / 4;
+    unsigned int chromRLength = m_pVideoCodecCtx->height * MIN(m_pVideoFrame->linesize[2],m_pVideoCodecCtx->width) / 4;
+
+    stH264YUV_Frame *updateYUVFrame = new stH264YUV_Frame();
+
+    updateYUVFrame->width = m_pVideoCodecCtx->width;
+    updateYUVFrame->height = m_pVideoCodecCtx->height;
+    updateYUVFrame->pts = ppts;
+
+    updateYUVFrame->luma.length = lumaLength;
+    updateYUVFrame->chromoB.length = chromBLength;
+    updateYUVFrame->chromoR.length = chromRLength;
+
+    updateYUVFrame->luma.dataBuffer = (unsigned char*)malloc(lumaLength);
+    updateYUVFrame->chromoB.dataBuffer = (unsigned char*)malloc(chromBLength);
+    updateYUVFrame->chromoR.dataBuffer = (unsigned char*)malloc(chromRLength);
+
+    copyDecodeFrame420(m_pYUVFrame->data[0], updateYUVFrame->luma.dataBuffer, m_pVideoFrame->linesize[0],
+                            m_pVideoCodecCtx->width, m_pVideoCodecCtx->height);
+
+    copyDecodeFrame420(m_pYUVFrame->data[1], updateYUVFrame->chromoB.dataBuffer, m_pVideoFrame->linesize[1],
+                            m_pVideoCodecCtx->width / 2, m_pVideoCodecCtx->height / 2);
+
+    copyDecodeFrame420(m_pYUVFrame->data[2], updateYUVFrame->chromoR.dataBuffer, m_pVideoFrame->linesize[2],
+                            m_pVideoCodecCtx->width / 2, m_pVideoCodecCtx->height / 2);
+
+}
+
+void JCAVCoderHandler::copyDecodeFrame420(uint8_t *src, uint8_t *dst, int linesize, int width, int height)
+{
+    width = MIN(linesize, width);
+    for(int i = 0; i < height; ++i)
+    {
+        memcpy(dst, src, width);// baduiqizhihou de youxiaoshuju kaobeidao dst
+        dst += width;
+        src +=linesize;// manzuduiqiyaoqiu
+    }
+}
+
+void JCAVCoderHandler::convertAndPlayAudio(AVFrame *decodedFrame)
+{
+
+}
+
 void JCAVCoderHandler::doReadMediaFrameThread()
 {
     while(m_bThreadRunning)
@@ -155,7 +222,56 @@ void JCAVCoderHandler::doReadMediaFrameThread()
 
 void JCAVCoderHandler::doAudioDecodeThread()
 {
+    if(m_pformatCtx == NULL)
+    {
+        return;
+    }
 
+    if(m_pAudioFrame == NULL)
+    {
+        m_pAudioFrame = av_frame_alloc();
+    }
+
+    while (m_bThreadRunning)
+    {
+        m_bVideoThreadRunning = true;
+
+        if(m_eMediaStatus == MEDIAPLAY_STATUS_PAUSE)
+        {
+            stdThreadSleep(10);
+            continue;
+        }
+
+        if(m_audioPktQue.isEmpty())
+        {
+            stdThreadSleep(10);
+            continue;
+        }
+
+        AVPacket *pkt = (AVPacket*)m_audioPktQue.dequeue();
+        if(pkt == NULL)
+        {
+            break;
+        }
+
+        int reValue = avcodec_send_packet(m_pAudioCodecCtx, pkt);
+        if(reValue != 0)
+        {
+            freePacket(pkt);
+            continue;
+        }
+
+        int decodeRet = avcodec_receive_frame(m_pAudioCodecCtx, m_pAudioFrame);
+        if(decodeRet == 0)
+        {
+            // xuanlanshipin
+            convertAndRenderVideo(m_pVideoFrame, pkt->pts);
+        }
+
+        freePacket(pkt);
+    }
+
+    qDebug()<< "audio decode thread exit..." << endl;
 }
 
 void JCAVCoderHandler::doVideoDecodeThread()
@@ -298,6 +414,24 @@ int JCAVCoderHandler::IntVideoCodec()
             }
         }
     }
+
+    // fenpei yuv neicun
+    if(m_pYUVFrame == NULL)
+    {
+        m_pYUVFrame = av_frame_alloc();
+    }
+
+    if(m_pYUV420pBuffer == NULL)
+    {
+        m_pYUV420pBuffer = (uint8_t*)malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, \
+                                                                      m_pVideoCodecCtx->width, \
+                                                                      m_pVideoCodecCtx->height, 1));
+    }
+
+    av_image_fill_arrays(m_pYUVFrame->data, m_pYUVFrame->linesize, \
+                         m_pYUV420pBuffer, AV_PIX_FMT_YUV420P, \
+                         m_pVideoCodecCtx->width, m_pVideoCodecCtx->height, 1);
+
 
     m_videoWidth = m_pVideoCodecCtx->width;
     m_videoHeight = m_pVideoCodecCtx->height;

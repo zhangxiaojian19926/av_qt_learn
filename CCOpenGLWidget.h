@@ -1,0 +1,4 @@
+#ifndef CCOPENGLWIDGET_H
+#define CCOPENGLWIDGET_H
+
+#endif // CCOPENGLWIDGET_H

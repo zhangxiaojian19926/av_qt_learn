@@ -24,11 +24,14 @@ LIBS += -lm -lX11 -lvdpau
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    CCOpenGLWidget.cpp \
     jcavcoderhandler.cpp \
     main.cpp \
     jcmplayer.cpp
 
 HEADERS += \
+    CCOpenGLWidget.h \
+    CCYUVDataDefine.h \
     JCDataDefine.h \
     jcavcoderhandler.h \
     jcmplayer.h

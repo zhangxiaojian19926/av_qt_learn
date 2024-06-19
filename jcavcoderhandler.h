@@ -10,6 +10,7 @@
 #include <thread>
 #include <vector>
 #include "JCDataDefine.h"
+#include "CCYUVDataDefine.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,11 +58,20 @@ private:
     AVFrame * m_pVideoFrame = NULL;
     AVFrame * m_pAudioFrame = NULL;
 
+    SwsContext* m_pAudioSwrCtx = NULL;
+    SwsContext* m_pVideoSwsCtx = NULL;
+
+    uint8_t* m_pYUV420pBuffer = NULL;
+
     AVRational       m_vStreamTimeRational;
     AVRational       m_aStreamTimeRational;
 
     JCTSQueue<AVPacket*> m_audioPktQue;
     JCTSQueue<AVPacket*> m_videoPktQue;
+
+    void convertAndRenderVideo(AVFrame* decodedFrame, long long ppts);// xuanlan
+    void convertAndPlayAudio(AVFrame *decodedFrame);
+    void copyDecodeFrame420(uint8_t *src, uint8_t *dst, int linesize, int width, int height);//kaobei shuju dao opengl
 
     void startMediaProcessThreads(); // chuangjian xiancheng
 
